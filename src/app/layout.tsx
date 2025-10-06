@@ -3,10 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../component/Navbar";
 import { AuthProvider } from "../lib/AuthContext";
-
 import Footer from "../component/Footer";
 import { Providers } from "./providers";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import ClickToCallFAB from "../component/ClickToCall";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,12 +23,11 @@ export const metadata: Metadata = {
   description:
     "Last Call Trips is a premium service that finds you incredibly cheap flight deals. We scour the web to uncover hidden deals, unadvertised sales and mistake fares that saves you at least 40% from average prices.",
   icons: {
-    icon: "/faviconn.ico", 
+    icon: "/faviconn.ico",
     shortcut: "/faviconn.ico",
-    apple: "/faviconn.ico", 
+    apple: "/faviconn.ico",
   },
 };
-
 
 export default function RootLayout({
   children,
@@ -48,9 +47,11 @@ export default function RootLayout({
             <Navbar />
             <main className="pt-28 min-h-screen">{children}</main>
             <Footer />
+            
+            <ClickToCallFAB phoneNumber="+1 (833) 747-1983" />
           </AuthProvider>
-
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
