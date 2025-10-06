@@ -85,7 +85,7 @@ export default function Story() {
       <section className="py-20 px-6 max-w-7xl mx-auto text-center">
         <h2 className="text-4xl font-extrabold text-[#155dfc] mb-6">Contact Us</h2>
         <p className="text-gray-700 text-lg mb-4">
-          Email: <a href="mailto:contact@lastcalltrip.com" className="text-[#155dfc] font-semibold hover:underline">contact@lastcalltrip.com</a>
+          Email: <a href="mailto:info@lastcalltrips.com" className="text-[#155dfc] font-semibold hover:underline">info@lastcalltrips.com</a>
         </p>
         <p className="text-gray-700 text-lg">
           Follow us on social media for instant updates on the latest travel deals!
