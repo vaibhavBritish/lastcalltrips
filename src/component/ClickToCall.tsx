@@ -13,7 +13,7 @@ const ClickToCallFAB: React.FC<ClickToCallFABProps> = ({ phoneNumber }) => {
     <a
       href={`tel:${cleanNumber}`}
       aria-label={`Call ${phoneNumber}`}
-      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 transition-colors duration-300 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-50"
+      className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 transition-colors duration-300 text-white w-18 h-18 rounded-full flex items-center justify-center shadow-lg z-50"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
