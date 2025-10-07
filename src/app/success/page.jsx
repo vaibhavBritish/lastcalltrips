@@ -69,7 +69,7 @@ export default function SuccessPage() {
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="mt-4 text-3xl font-bold text-gray-900">Subscription Successful!</h1>
-          <p className="mt-2 text-lg text-gray-600">Welcome to your premium membership</p>
+          <p className="mt-2 text-lg text-gray-600">Welcome to your {subscription.plan} membership</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -115,8 +115,8 @@ export default function SuccessPage() {
                     <span className="font-medium text-gray-700">Status:</span>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${subscription.status === "ACTIVE"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
                         }`}
                     >
                       {subscription.status}
@@ -154,10 +154,10 @@ export default function SuccessPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === "SUCCEEDED"
-                              ? "bg-green-100 text-green-800"
-                              : payment.status === "FAILED"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
+                            ? "bg-green-100 text-green-800"
+                            : payment.status === "FAILED"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
                             }`}
                         >
                           {payment.status}
@@ -174,18 +174,26 @@ export default function SuccessPage() {
           </div>
         )}
 
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href = "/profile"><button
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Go to Dashboard
-          </button></Link>
-          <Link href={"/deals"}><button
-            className="px-6 py-3 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition-colors"
-          >
-            Deals
-          </button></Link>
+        <div className="mt-8 text-center">
+          <h1 className="text-lg font-medium text-red-600 mb-4">
+            Please Reload Your Page Once for Accessing Deals
+          </h1>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/profile">
+              <button className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors">
+                Go to Dashboard
+              </button>
+            </Link>
+            <Link href="/deals">
+              <button className="px-6 py-3 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition-colors">
+                Deals
+              </button>
+            </Link>
+          </div>
         </div>
+
+
       </div>
     </div>
   );

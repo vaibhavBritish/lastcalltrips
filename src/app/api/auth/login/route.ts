@@ -26,6 +26,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // If the account was created via Google OAuth, password may be null
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "This account uses Google sign-in. Please continue with Google." },
+        { status: 401 }
+      );
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(

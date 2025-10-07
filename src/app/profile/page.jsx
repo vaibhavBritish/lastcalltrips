@@ -31,7 +31,7 @@ const ProfileContent = ({ user, activeSub }) => {
           <FaStar className="text-yellow-500 text-2xl" />
           <div>
             <p className="text-gray-500 text-sm">Current Plan</p>
-            <p className="font-medium text-gray-800">Premium</p>
+            <p className="font-medium text-gray-800">{activeSub?.plan}</p>
           </div>
         </div>
 

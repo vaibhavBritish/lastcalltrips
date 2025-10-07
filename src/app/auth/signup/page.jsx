@@ -138,6 +138,19 @@ const Signup = () => {
                     </button>
                 </form>
 
+                <div className="my-6 flex items-center">
+                    <div className="flex-grow h-px bg-gray-200" />
+                    <span className="px-3 text-xs text-gray-400">OR</span>
+                    <div className="flex-grow h-px bg-gray-200" />
+                </div>
+                <button
+                    onClick={() => (window.location.href = "/api/auth/google")}
+                    className="w-full py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-gray-50 transition duration-300 flex items-center justify-center gap-2"
+                >
+                    <img src="/google.png" alt="Google" className="w-5 h-5" />
+                    Continue with Google
+                </button>
+
                 <p className="text-sm text-gray-600 text-center mt-6">
                     Already have an account?{" "}
                     <Link href="/login" className="text-indigo-600 font-medium hover:underline">
