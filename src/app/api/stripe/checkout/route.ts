@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
 
     let appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl || !/^https?:\/\//.test(appUrl)) {
-      console.warn("⚠️ Invalid or missing NEXT_PUBLIC_APP_URL. Falling back to http://localhost:3000");
-      appUrl = "http://localhost:3000";
+      console.warn("⚠️ Invalid or missing NEXT_PUBLIC_APP_URL. Falling back to http://localhost");
+      appUrl = "http://localhost";
     }
     appUrl = appUrl.replace(/\/$/, ""); 
 
