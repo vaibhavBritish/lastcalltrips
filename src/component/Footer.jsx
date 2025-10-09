@@ -21,7 +21,7 @@ const Footer = () => {
         <nav>
           <ul className="flex flex-wrap gap-8 text-sm font-medium">
             {[
-              { label: "About", href: "/about" },
+              { label: "About", href: "/story" },
               { label: "Blog", href: "/travelBlog" },
               { label: "Help", href: "/support" },
               { label: "Disclaimer", href: "/disclaimer" },
