@@ -45,7 +45,7 @@ export default function RootLayout({
         <Providers>
           <AuthProvider>
             <Navbar />
-            <main className="pt-28 min-h-screen">{children}</main>
+            <main className="pt-28 min-h-screen mt-10">{children}</main>
             <Footer />
             
             <ClickToCallFAB phoneNumber="+1 (833) 747-1983" />
