@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "../../../../../../prisma/client";
 import slugify from "slugify";
+import { client } from "@/lib/sanity.client";
 
 // GET blog by ID
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params; 
+  const { id } = await context.params;
 
-  const blog = await prisma.blog.findUnique({
-    where: { id },
-  });
+  const blog = await client.fetch(
+    `*[_type=="post" && _id==$id][0]{
+      _id,
+      title,
+      description,
+      body,
+      mainImage,
+      tags,
+      publishedAt,
+      "slug": slug.current,
+      "authorName": author->name
+    }`,
+    { id }
+  );
 
   if (!blog) {
     return NextResponse.json({ message: "Blog not found" }, { status: 404 });
@@ -27,35 +38,28 @@ export async function PUT(
 
   try {
     const data = await req.json();
-    let updateData = { ...data };
 
+    // If title changes, regenerate slug
     if (data.title) {
-      const slugBase = slugify(data.title, { lower: true, strict: true });
-      let slug = slugBase;
-      let i = 1;
-
-      while (await prisma.blog.findUnique({ where: { slug } })) {
-        slug = `${slugBase}-${i++}`;
-      }
-
-      updateData.slug = slug;
+      const baseSlug = slugify(data.title, { lower: true, strict: true });
+      const existing = await client.fetch(`*[_type=="post" && slug.current==$slug && _id!=$id][0]`, { slug: baseSlug, id });
+      data.slug = existing ? `${baseSlug}-${Date.now()}` : baseSlug;
     }
 
-    const updatedBlog = await prisma.blog.update({
-      where: { id },
-      data: updateData,
-    });
+    const updated = await client.patch(id)
+      .set({
+        ...(data.title && { title: data.title }),
+        ...(data.description && { description: data.description }),
+        ...(Array.isArray(data.body) && { body: data.body }),
+        ...(Array.isArray(data.tags) && { tags: data.tags }),
+        ...(data.slug && { slug: { _type: 'slug', current: data.slug } }),
+      })
+      .commit();
 
-    return NextResponse.json(
-      { ...updatedBlog, message: "Your Blog Updated Successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ ...updated, message: "Your Blog Updated Successfully" }, { status: 200 });
   } catch (error) {
     console.error("PUT /api/blog/by-id/[id] error:", error);
-    return NextResponse.json(
-      { message: "Blog not found or update failed" },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: "Blog not found or update failed" }, { status: 400 });
   }
 }
 
@@ -66,23 +70,10 @@ export async function DELETE(
 ) {
   const { id } = await context.params;
 
-  const existingBlog = await prisma.blog.findUnique({
-    where: { id },
-  });
-
-  if (!existingBlog) {
-    return NextResponse.json(
-      { message: "Blog not found" },
-      { status: 404 }
-    );
+  try {
+    await client.delete(id);
+    return NextResponse.json({ message: "Blog Deleted Successfully" }, { status: 200 });
+  } catch (err) {
+    return NextResponse.json({ message: "Blog not found" }, { status: 404 });
   }
-
-  await prisma.blog.delete({
-    where: { id },
-  });
-
-  return NextResponse.json(
-    { message: "Blog Deleted Successfully" },
-    { status: 200 }
-  );
 }

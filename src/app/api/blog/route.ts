@@ -1,87 +1,108 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "../../../../prisma/client";
 import slugify from "slugify";
-import cloudinary from "@/lib/cloudinary";
+import { client } from "@/lib/sanity.client";
 
-export async function GET() {
-    const blogs = await prisma.blog.findMany({
-        select: {
-            id: true,
-            title: true,
-            description: true,
-            content: true,
-            slug: true,
-            image: true,
-            author: true,
-            tags: true,
-            createdAt: true,
-            updatedAt: true,
-            isPublished: true
-        }
-    })
-    return NextResponse.json({ blogs })
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const page = Number(searchParams.get("page") || 1);
+    const limit = Number(searchParams.get("limit") || 10);
+    const offset = (page - 1) * limit;
+
+    const query = `*[_type=="post"] | order(publishedAt desc)[$offset...$end]{
+      _id,
+      title,
+      description,
+      "slug": slug.current,
+      mainImage,
+      tags,
+      "authorName": author->name,
+      publishedAt
+    }`;
+
+    const [blogs, total] = await Promise.all([
+      client.fetch(query, { offset, end: offset + limit }),
+      client.fetch('count(*[_type=="post"])')
+    ]);
+
+    return NextResponse.json({ blogs, total });
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    return NextResponse.json({ message: "Failed to fetch blogs" }, { status: 500 });
+  }
 }
+
+
+
 
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, description, content, author, tags, isPublished, image } =
-      await req.json();
+    const formData = await req.formData();
 
-    if (
-      !title ||
-      !description ||
-      !content ||
-      !author ||
-      !tags ||
-      !image ||
-      isPublished === undefined
-    ) {
+    const title = formData.get("title")?.toString();
+    const description = formData.get("description")?.toString();
+    const content = formData.get("content")?.toString();
+    const tags = formData.get("tags")?.toString();
+    const isPublished = formData.get("isPublished") === "true";
+    const imageFile = formData.get("image") as File | null;
+
+    if (!title || !description || !content) {
       return NextResponse.json(
-        { message: "All fields are required" },
+        { message: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    let imageUrls: string[] = [];
-    if (Array.isArray(image)) {
-      for (const img of image) {
-        if (img.startsWith("data:")) {
-          const uploaded = await cloudinary.uploader.upload(img, {
-            folder: "nextjs_blog_images",
-          });
-          imageUrls.push(uploaded.secure_url);
-        } else {
-          imageUrls.push(img); // already URL
-        }
-      }
+    // Upload image to Sanity
+    let imageAsset = null;
+    if (imageFile) {
+      const uploaded = await client.assets.upload("image", imageFile, {
+        filename: imageFile.name,
+      });
+      imageAsset = {
+        _type: "image",
+        asset: { _type: "reference", _ref: uploaded._id },
+      };
     }
 
-    const slugBase = slugify(title, { lower: true, strict: true });
-    let slug = slugBase;
-    let i = 1;
-    while (await prisma.blog.findUnique({ where: { slug } })) {
-      slug = `${slugBase}-${i++}`;
-    }
+    // Convert content to Portable Text blocks
+    const blocks = content
+      .split("\n")
+      .filter((line) => line.trim() !== "")
+      .map((line) => ({
+        _type: "block",
+        _key: crypto.randomUUID(),
+        style: "normal",
+        children: [{ _type: "span", text: line, _key: crypto.randomUUID() }],
+      }));
 
-    const blog = await prisma.blog.create({
-      data: {
-        title,
-        description,
-        content,
-        image: imageUrls,
-        slug,
-        author,
-        tags,
-        isPublished,
-      },
+    // Generate slug
+    const baseSlug = slugify(title, { lower: true, strict: true });
+    const existing = await client.fetch(
+      `*[_type=="post" && slug.current==$slug][0]`,
+      { slug: baseSlug }
+    );
+    const slug = existing ? `${baseSlug}-${Date.now()}` : baseSlug;
+
+    // Create blog in Sanity
+    const newPost = await client.create({
+      _type: "post",
+      title,
+      description,
+      body: blocks,
+      tags: tags ? tags.split(",").map((t) => t.trim()) : [],
+      slug: { _type: "slug", current: slug },
+      mainImage: imageAsset,
+      publishedAt: isPublished ? new Date().toISOString() : null,
+      // Optionally set author reference here if you maintain authors in Sanity
     });
 
-    return NextResponse.json(blog, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/blog error:", error);
+    return NextResponse.json({ success: true, post: newPost });
+  } catch (err) {
+    console.error("Error creating blog:", err);
     return NextResponse.json(
-      { message: "Internal Server Error" },
+      { message: "Failed to create blog" },
       { status: 500 }
     );
   }

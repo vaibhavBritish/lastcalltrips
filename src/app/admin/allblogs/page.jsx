@@ -3,9 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setBlogs, deleteBlog as removeBlog } from "../../../store/blogSlice";
+import imageUrlBuilder from "@sanity/image-url";
+import { client } from "@/lib/sanity.client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+
+const builder = imageUrlBuilder(client);
 
 const AllBlogs = () => {
   const router = useRouter();
@@ -159,17 +163,27 @@ const AllBlogs = () => {
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredBlogs.map((blog) => (
               <div
-                key={blog.id}
+                key={blog._id || blog.id}
                 className="p-6 rounded-2xl shadow-lg bg-white border hover:shadow-2xl transition duration-300"
               >
                 <div className="mb-4 rounded-xl overflow-hidden">
-                  <Image
-                    src={blog.image?.[0] || "/fallback.jpg"}
-                    alt={blog.title}
-                    width={400}
-                    height={250}
-                    className="object-cover w-full h-48 transform hover:scale-105 transition duration-300"
-                  />
+                  {blog.mainImage ? (
+                    <Image
+                      src={builder.image(blog.mainImage).width(400).height(250).url()}
+                      alt={blog.title}
+                      width={400}
+                      height={250}
+                      className="object-cover w-full h-48 transform hover:scale-105 transition duration-300"
+                    />
+                  ) : (
+                    <Image
+                      src="/fallback.jpg"
+                      alt={blog.title}
+                      width={400}
+                      height={250}
+                      className="object-cover w-full h-48 transform hover:scale-105 transition duration-300"
+                    />
+                  )}
                 </div>
                 <h2 className="text-xl font-semibold line-clamp-2">
                   {blog.title}
@@ -186,13 +200,13 @@ const AllBlogs = () => {
                     Read More
                   </button>
                   <button
-                    onClick={() => router.push(`/admin/edit/${blog.id}`)}
+                    onClick={() => router.push(`/admin/edit/${blog._id || blog.id}`)}
                     className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDeleteBlog(blog.id)}
+                    onClick={() => handleDeleteBlog(blog._id || blog.id)}
                     className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
                   >
                     Delete

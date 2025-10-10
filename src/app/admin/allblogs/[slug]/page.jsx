@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import imageUrlBuilder from "@sanity/image-url";
+import { client } from "@/lib/sanity.client";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -71,6 +73,8 @@ const BlogBySlug = () => {
   if (loading) return <p className="text-center py-10">⏳ Loading blog...</p>;
   if (!blog) return <p className="text-center py-10 text-red-500">❌ Blog not found</p>;
 
+  const builder = imageUrlBuilder(client);
+
   return (
     <div className="max-w-4xl mx-auto px-5 py-10">
       <h1 className="text-4xl font-extrabold text-gray-900 mb-4 text-center">
@@ -96,13 +100,15 @@ const BlogBySlug = () => {
       </div>
 
       <div className="overflow-hidden rounded-2xl shadow-lg mb-8">
-        <Image
-          src={blog.image[0]}
-          alt={blog.title}
-          width={900}
-          height={600}
-          className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
-        />
+        {blog.mainImage && (
+          <Image
+            src={builder.image(blog.mainImage).width(900).height(600).url()}
+            alt={blog.title}
+            width={900}
+            height={600}
+            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500"
+          />
+        )}
       </div>
 
       <p className="text-lg text-gray-600 leading-relaxed mb-8 text-center">
@@ -110,7 +116,10 @@ const BlogBySlug = () => {
       </p>
 
       <div className="prose lg:prose-lg max-w-none prose-headings:text-gray-800 prose-p:text-gray-700 prose-a:text-blue-600 prose-img:rounded-xl">
-        {blog.content}
+        {/* Body is portable text in Sanity; render on the client if needed */}
+        {Array.isArray(blog.body) ? blog.body.map((b, i) => (
+          <p key={i}>{b.children?.map((c) => c.text).join("")}</p>
+        )) : blog.description}
       </div>
     </div>
   );

@@ -50,6 +50,13 @@ const EditBlogPage = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const blocksToPlainText = (blocks) => {
+            if (!Array.isArray(blocks)) return "";
+            return blocks
+                .map((block) => Array.isArray(block.children) ? block.children.map((c) => c.text || "").join("") : "")
+                .join("\n\n");
+        };
+
         const fetchBlog = async () => {
             try {
                 const res = await fetch(`/api/blog/by-id/${id}`);
@@ -59,7 +66,7 @@ const EditBlogPage = () => {
                 setForm({
                     title: data.blog.title || "",
                     description: data.blog.description || "",
-                    content: data.blog.content || "",
+                    content: blocksToPlainText(data.blog.body) || "",
                 });
             } catch (error) {
                 console.error(error);
@@ -82,10 +89,24 @@ const EditBlogPage = () => {
         e.preventDefault();
 
         try {
+            // Convert plain text content back to Portable Text blocks for Sanity
+            const blocks = (form.content || "")
+                .split("\n")
+                .filter((line) => line.trim() !== "")
+                .map((line) => ({
+                    _type: "block",
+                    style: "normal",
+                    children: [{ _type: "span", text: line }],
+                }));
+
             const res = await fetch(`/api/blog/by-id/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: JSON.stringify({
+                    title: form.title,
+                    description: form.description,
+                    body: blocks,
+                }),
             });
 
             if (!res.ok) throw new Error("Failed to update blog");
